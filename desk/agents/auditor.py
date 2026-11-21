@@ -571,7 +571,7 @@ async def audit(scan: dict) -> dict:
             l.update({"pass": ok, "value": value, "source": source, "ms": int(1000 * (time.monotonic() - t))})
             bus.emit("audit_layer", {"mint": mint, "n": l["n"], "name": l["name"], "pass": ok, "value": value})
             _card(mint, name, layers)
-            if not ok:
+            if ok is False:
                 reason = red or value
                 break
     if not (scan.get("name") or c.coin.get("name")):
