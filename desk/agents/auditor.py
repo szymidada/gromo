@@ -563,7 +563,7 @@ async def audit(scan: dict) -> dict:
     name = scan.get("name") or scan.get("symbol") or c.coin.get("name") or mint[:6]
     names, checks = plan(chain)
     layers = [{"n": i + 1, "name": n, "pass": None, "value": "not checked",
-               "source": "grokhood" if chain == "robinhood" else "rugcheck" if n == SOL_LAYER9 else "rpc"}
+               "source": "grokhood" if chain == "robinhood" else "rugcheck" if n in ("LP locked", SOL_LAYER9) else "rpc"}
               for i, n in enumerate(names)]
     reason: str | None = None
     ts0 = db.now()
