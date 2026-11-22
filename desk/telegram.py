@@ -308,6 +308,12 @@ async def cmd_sell_all(chat: int) -> None:
 
 
 async def handle_text(chat: int, text: str) -> None:
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if len(lines) > 1:
+        for line in lines:
+            await handle_text(chat, line)
+        return
+
     t = text.strip()
     if t == "LIVE":
         await cmd_mode(chat, "LIVE")
