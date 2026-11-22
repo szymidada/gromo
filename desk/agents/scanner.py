@@ -432,5 +432,15 @@ async def poll_loop() -> None:
 async def run() -> None:
     restore_room()
     log.info("scanner up, %d coins restored to the waiting room", len(room))
-    await asyncio.gather(_forever("pumpportal", solana_listener), _forever("grokhood stream", rh_stream),
-                         _forever("poll", poll_loop))
+
+    tasks = [
+        _forever("pumpportal", solana_listener),
+        _forever("poll", poll_loop),
+    ]
+
+    if config.get("scanner.robinhood"):
+        tasks.append(_forever("grokhood stream", rh_stream))
+    else:
+        log.info("grokhood disabled: Robinhood scanner is off")
+
+    await asyncio.gather(*tasks)
