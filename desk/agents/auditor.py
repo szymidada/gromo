@@ -292,10 +292,22 @@ async def sol_top10(c: Ctx):
 
 async def sol_lp(c: Ctx):
     pair = await c.pair()
-    pool = c.pool or F.dex_pair_address(pair)
-    m = F.rc_market_for_pool(await c.report(), pool)
+    dex_pool = F.dex_pair_address(pair)
+    pool = dex_pool or c.pool
+    if not pool:
+        raise NoData("DexScreener pair address")
+
+    if c.pool and dex_pool and c.pool != dex_pool:
+        log.info("%s LP pool changed: stored %s, selected %s",
+                 c.mint[:6], short(c.pool), short(dex_pool))
+
+    report = await c.report()
+    m = F.rc_market_for_pool(report, pool)
     if m is None:
-        raise NoData("rugcheck market for pool")
+        c._m.pop("report", None)
+        raise NoData(f"RugCheck has no market for selected DexScreener pool "
+                     f"{short(pool)} (reported markets: {len(F.rc_markets(report))})")
+
     locked = F.rc_market_lp_locked_pct(m)
     if locked is None:
         raise NoData("lpLockedPct")
