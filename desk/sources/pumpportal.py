@@ -40,14 +40,22 @@ def _note(name: str) -> None:
 async def migrations() -> AsyncIterator[dict]:
     """Yields migration messages forever."""
     backoff = 1.0
+
     while True:
         try:
-            async with websockets.connect(URL, ping_interval=30, ping_timeout=30, open_timeout=20) as ws:
-                await ws.send(json.dumps({"method": "subscribeMigration"}))
+            async with websockets.connect(
+                URL,
+                ping_interval=30,
+                ping_timeout=30,
+                open_timeout=20
+            ) as ws:
+                await ws.send(json.dumps({
+                    "method": "subscribeMigration"
+                }))
                 log.info("pumpportal connected, subscribed to migrations")
                 backoff = 1.0
-                while True:
-                    raw = await asyncio.wait_for(ws.recv(), timeout=SILENT_S)
+
+                async for raw in ws:
                     try:
                         msg = json.loads(raw)
                     except ValueError:
