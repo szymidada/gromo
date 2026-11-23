@@ -66,8 +66,15 @@ async def migrations() -> AsyncIterator[dict]:
             raise
         except asyncio.TimeoutError:
             log.warning("pumpportal silent %.0fs, reconnecting", SILENT_S)
-        except Exception as e:  # noqa: BLE001
-            log.warning("pumpportal dropped: %s", type(e).__name__)
+       except Exception as e:  # noqa: BLE001
+    response = getattr(e, "response", None)
+    status = getattr(response, "status_code", None)
+    retry_after = response.headers.get("Retry-After") if response else None
+
+    log.warning(
+        "pumpportal dropped: %s HTTP=%s retry_after=%s detail=%s",
+        type(e).__name__, status, retry_after, str(e)[:300]
+    )
         n = _bump()
         _note("pumpportal")
         log.info("pumpportal reconnect #%d in %.0fs", n, backoff)
